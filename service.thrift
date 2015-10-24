@@ -2,6 +2,7 @@
 typedef binary image
 
 service MakeTags {
-    // here we are defining a service that has a method generate which returns a list of strings and    // takes in an image
+    // here we are defining a service that has a method generate which returns a list of strings and
+    // takes in an image
     list<string> generate(1: image) 
 }
