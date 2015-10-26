@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"gen-go/service"
 	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/faiq/gen-go/service"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,4 +25,5 @@ func main() {
 	}
 	tags, err := client.Generate(service.Image(imgBytes))
 	fmt.Printf("These are the tags for your image %v", tags)
+	socket.Close()
 }
