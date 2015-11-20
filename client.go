@@ -3,18 +3,18 @@ package main
 import (
 	"fmt"
 	"git.apache.org/thrift.git/lib/go/thrift"
-	"github.com/faiq/gen-go/service"
+	"github.com/faiq/intro-to-rpc/gen-go/service"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	socket, err := thrift.NewTSocket("localhost:8000")
+	socket, err := thrift.NewTSocket("localhost:8090")
 	if err != nil {
 		fmt.Printf("There was an error creating your socket! Here it is %v", err)
 	}
-	protocolFactory := thrift.NewTBinaryProtocolFactory()
+	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
 	client := service.NewMakeTagsClientFactory(socket, protocolFactory)
 	pwd, _ := os.Getwd()
 	fileName := pwd + "/img.png"
