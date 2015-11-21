@@ -14,8 +14,9 @@ func main() {
 	if err != nil {
 		fmt.Printf("There was an error creating your socket! Here it is %v", err)
 	}
+	transport := thrift.NewTBufferedTransport(socket, 1024)
 	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
-	client := service.NewMakeTagsClientFactory(socket, protocolFactory)
+	client := service.NewMakeTagsClientFactory(transport, protocolFactory)
 	pwd, _ := os.Getwd()
 	fileName := pwd + "/img.png"
 	fileName, _ = filepath.Abs(fileName)
