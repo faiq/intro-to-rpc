@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strconv"
+	"path/filepath"
 )
 
 // TagResp represents the expected JSON response from /tag/
@@ -40,43 +42,33 @@ type TagResult struct {
 	DocIDString string `json:"docid_str"`
 }
 
-const url = "https://api.clarifai.com/v1/tag/"
+const tagUrl = "https://api.clarifai.com/v1/tag/"
 
 func GetImageTags(imgBytes []byte) ([]string, error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
-	img := ioutil.NewReader(imgBytes)
-	h := make(textproto.MIMEHeader)
-	h.Set("Content-Type", "application/octet-stream")
-	fileSec, err := w.CreatePart(h)
+	fw, err := w.CreateFormField("encoded_data")
 	if err != nil {
-		return []string{""}, err
+		return nil, err
 	}
-	_, err = img.WriteTo(fileSec)
-	if err != nil {
-		return []string{""}, err
+	imgBase64Str := base64.StdEncoding.EncodeToString(imgBytes)
+	if _, err := fw.Write([]byte(imgBase64Str)); err != nil {
+		return nil, err
 	}
 	w.Close()
-
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
-
-	req, err := http.NewRequest("POST", url, b)
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", tagUrl, &b)
 	if err != nil {
-		return []string{""}, err
+		return nil, err
 	}
-
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("ACCESS_TOKEN"))
-	req.Header.Set("Content-Length", strconv.Itoa(b.Len()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
+	req.Header.Set("Content-Type", w.FormDataContentType())
 	resp, err := client.Do(req)
 	if err != nil {
-		return []string{""}, err
+		return nil, err
 	}
+	defer resp.Body.Close()
 	var tagResp TagResp
 	json.NewDecoder(resp.Body).Decode(&tagResp)
-	fmt.Printf("%v ", tagResp)
-	return []string{""}, err
+	return tagResp.Results.Classes, err
 }
