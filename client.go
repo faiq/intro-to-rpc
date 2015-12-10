@@ -13,6 +13,7 @@ func main() {
 	socket, err := thrift.NewTSocket("localhost:8090")
 	if err != nil {
 		fmt.Printf("There was an error creating your socket! Here it is %v", err)
+		os.Exit(1)
 	}
 	transport := thrift.NewTBufferedTransport(socket, 1024)
 	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
@@ -23,8 +24,15 @@ func main() {
 	imgBytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		fmt.Printf("There was an err reading the file! Here it is %v", err)
+		os.Exit(1)
 	}
+
+	socket.Open()
 	tags, err := client.Generate(service.Image(imgBytes))
+	if err != nil {
+		fmt.Printf("There was an err getting the tags! Here it is %v ", err)
+		os.Exit(1)
+	}
 	fmt.Printf("These are the tags for your image %v", tags)
 	socket.Close()
 }

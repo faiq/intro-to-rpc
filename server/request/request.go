@@ -1,15 +1,11 @@
-package main
+package request
 
 import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
 // TagResp represents the expected JSON response from /tag/
@@ -44,7 +40,7 @@ type TagResult struct {
 
 const tagUrl = "https://api.clarifai.com/v1/tag/"
 
-func GetImageTags(imgBytes []byte) ([]string, error) {
+func GetImageTags(imgBytes []byte, accessToken string) ([]string, error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	fw, err := w.CreateFormField("encoded_data")
@@ -61,7 +57,7 @@ func GetImageTags(imgBytes []byte) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("ACCESS_TOKEN"))
+	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	resp, err := client.Do(req)
 	if err != nil {
@@ -70,5 +66,5 @@ func GetImageTags(imgBytes []byte) ([]string, error) {
 	defer resp.Body.Close()
 	var tagResp TagResp
 	json.NewDecoder(resp.Body).Decode(&tagResp)
-	return tagResp.Results.Classes, err
+	return tagResp.Results[0].Result.Tag.Classes, err
 }
